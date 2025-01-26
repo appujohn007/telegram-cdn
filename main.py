@@ -8,6 +8,7 @@ BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"  # Replace with you
 # Initialize Pyrogram Client
 bot = Client("GetFileURLBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
+
 @bot.on_message(filters.document | filters.photo | filters.video | filters.audio)
 async def get_file_url(client, message):
     """Handles incoming files and generates a direct download URL"""
@@ -21,20 +22,22 @@ async def get_file_url(client, message):
 
         file_id = file.file_id
         print(f"file Id: {file_id}")
-        # ✅ FIXED: get_file() is NOT an async function, so remove 'await'
-        file_info = client.get_file(file_id)  # <-- No 'await' here
+
+        # ✅ FIXED: Await `get_file()`
+        file_info = await client.get_file(file_id)  # <-- 'await' added
         file_path = file_info.file_path
 
         # Construct direct download URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
 
         # Send the file URL
-        await message.reply_text(f"📥 **Download Link:**\n{file_url}")
+        await message.reply_text(f"📥 Download Link:\n{file_url}")
 
     except Exception as e:
         await message.reply_text(f"❌ Error: {e}")
-        print(f"Error: {e}") 
-        
+        print(f"Error: {e}")
+
+
 
 # Run the bot
 if __name__ == "__main__":
