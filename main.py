@@ -12,7 +12,6 @@ app = Client("cdn_url_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKE
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pyrogram.raw import GetCdnFile, InputDocumentFileLocation
 
 @app.on_message(filters.media & filters.private)
 async def get_cdn_url(client: Client, msg: Message):
@@ -20,37 +19,25 @@ async def get_cdn_url(client: Client, msg: Message):
         try:
             # Extract file details directly from the message
             document = msg.document
-
             file_id = document.file_id
-            file_unique_id = document.file_unique_id
-            file_name = document.file_name
-            file_size = document.file_size
-            mime_type = document.mime_type
 
-            # Use the file_id and file_unique_id to get the CDN URL
-            # Request CDN file location
-            result = await client.invoke(
-                GetCdnFile(
-                    location=InputDocumentFileLocation(
-                        id=file_id,
-                        access_hash=msg.document.access_hash,  # You need to have access_hash for this
-                        file_reference=msg.document.file_ref   # You need to ensure file_ref is available
-                    ),
-                    offset=0,
-                    limit=1024  # Specify the chunk size (1024 bytes in this case)
-                )
-            )
+            # Retrieve file metadata using get_file()
+            file = await client.get_file(file_id)
 
-            # Output CDN URL or related information
-            if result:
-                await msg.reply(f"CDN URL retrieved:\n\n{result.url}")
-            else:
-                await msg.reply("Failed to retrieve the CDN URL for this file.")
+            # Ensure the file has access_hash and file_ref
+            access_hash = file.access_hash
+            file_ref = file.file_ref
+
+            # Now you have file_id, access_hash, and file_ref to generate CDN URL
+
+            # Example of retrieving a CDN URL (this part depends on the available API features)
+            file_url = f"https://api.telegram.org/file/bot{client.token}/{file.file_path}"
+
+            await msg.reply(f"CDN URL:\n{file_url}")
         except Exception as e:
             await msg.reply(f"Error: {e}")
     else:
         await msg.reply("Please send a document or media file to retrieve the CDN URL.")
-
 
 
 # Start the bot
