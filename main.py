@@ -21,16 +21,16 @@ async def get_cdn_url(client: Client, msg: Message):
             document = msg.document
             file_id = document.file_id
 
-            # Retrieve file metadata using get_file()
+            # Retrieve file metadata using get_file() and ensure proper handling
             file = await client.get_file(file_id)
 
-            # Ensure the file has access_hash and file_ref
+            # If the file has file_ref and access_hash, generate a CDN URL
             access_hash = file.access_hash
             file_ref = file.file_ref
 
-            # Now you have file_id, access_hash, and file_ref to generate CDN URL
-
-            # Example of retrieving a CDN URL (this part depends on the available API features)
+            # Now you have access_hash and file_ref
+            # Example of generating CDN URL
+            # (If pyrogram supports directly getting the CDN URL, this can be done more easily with their method)
             file_url = f"https://api.telegram.org/file/bot{client.token}/{file.file_path}"
 
             await msg.reply(f"CDN URL:\n{file_url}")
@@ -38,8 +38,7 @@ async def get_cdn_url(client: Client, msg: Message):
             await msg.reply(f"Error: {e}")
     else:
         await msg.reply("Please send a document or media file to retrieve the CDN URL.")
-
-
+        
 
 # Start the bot
 if __name__ == "__main__":
