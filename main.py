@@ -24,6 +24,7 @@ def get_file_url(message):
         file_info = bot.get_file(file_id)
         file_path = file_info.file_path
 
+        print(file_path)
         # ✅ Construct direct file URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
 
