@@ -16,7 +16,7 @@ async def get_cdn_url(client, msg):
             document = msg.document  # Ensure this is a valid Document object
 
             # Fetch file metadata to get access_hash and file_ref
-            file = await client.get_file(document.file_id).__anext__()
+            file = await client.get_file(document.file_id)
 
             # Retrieve the file_ref and access_hash
             file_ref = file.file_ref
@@ -24,6 +24,7 @@ async def get_cdn_url(client, msg):
             file_id = file.file_id
             dc_id = file.dc_id
             print(f"file details : {file}")
+            
             # Request CDN file location
             result = await client.invoke(
                 GetCdnFile(
