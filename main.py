@@ -10,13 +10,13 @@ BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"
 app = Client("cdn_url_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 
-
 @app.on_message(filters.media & filters.private)
 async def get_cdn_url(client, msg):
     if msg.document:
-        document = msg.document
-
         try:
+            document = msg.document  # Ensure this is a valid Document object
+            print(msg.document) 
+            
             # Fetch file metadata to get access_hash and file_ref
             file = await client.get_file(document.file_id).__anext__()
 
@@ -47,8 +47,8 @@ async def get_cdn_url(client, msg):
         except Exception as e:
             await msg.reply(f"Error: {e}")
     else:
-        await msg.reply("Please send a document or media file to retrieve the CDN URL.")
-
+        await msg.reply("Please send a document or media file to retrieve the CDN URL.") 
+        
 
 # Start the bot
 if __name__ == "__main__":
