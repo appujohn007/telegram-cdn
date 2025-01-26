@@ -27,7 +27,7 @@ def get_file_url(message):
         print(file_path)
         # ✅ Construct direct file URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
-
+        print(file_url)
         # ✅ Upload image to ImgBB
         img_bb_url = f"https://api.imgbb.com/1/upload?key={IMG_BB_API_KEY}&image={file_url}"
         response = requests.post(img_bb_url).json()
