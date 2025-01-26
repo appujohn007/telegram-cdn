@@ -21,8 +21,8 @@ async def get_file_url(client, message):
 
         file_id = file.file_id
 
-        # Get file info
-        file_info = await client.get_file(file_id)
+        # ✅ FIXED: get_file() is NOT an async function, so remove 'await'
+        file_info = client.get_file(file_id)  # <-- No 'await' here
         file_path = file_info.file_path
 
         # Construct direct download URL
@@ -33,9 +33,8 @@ async def get_file_url(client, message):
 
     except Exception as e:
         await message.reply_text(f"❌ Error: {e}")
-        print(f"Error: {e}")
-
-
+        print(f"Error: {e}") 
+        
 
 # Run the bot
 if __name__ == "__main__":
