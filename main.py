@@ -9,7 +9,7 @@ BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"  # Replace with you
 bot = Client("GetFileURLBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 @bot.on_message(filters.document | filters.video | filters.audio | filters.photo)
-def get_file_url(client, message):
+async def get_file_url(client, message):
     """Handles incoming files and generates a direct download URL"""
     try:
         # Get the correct file object
@@ -34,7 +34,7 @@ def get_file_url(client, message):
         message.reply_text(f"📥 **Download Link:**\n{file_url}")
 
     except Exception as e:
-        message.reply_text(f"❌ Error: {e}")
+        await message.reply_text(f"❌ Error: {e}")
         print(f"Error: {e}")
 
 # Run the bot
