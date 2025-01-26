@@ -1,42 +1,42 @@
-from pyrogram import Client, filters
+import telebot
+import requests
 
 # Bot Configuration
-API_ID = 10471716  # Replace with your API ID
-API_HASH = "f8a1b21a13af154596e2ff5bed164860"  # Replace with your API HASH
 BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"  # Replace with your bot token
+IMG_BB_API_KEY = "your_imgbb_api_key"  # Replace with your ImgBB API Key
 
-# Initialize Pyrogram Client (Fully Synchronous)
-bot = Client("GetFileURLBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Initialize bot
+bot = telebot.TeleBot(BOT_TOKEN)
 
-@bot.on_message(filters.document | filters.video | filters.audio | filters.photo)
-async def get_file_url(client, message):
-    """Handles incoming files and generates a direct download URL"""
+@bot.message_handler(content_types=['photo'])
+def get_file_url(message):
+    """Handles incoming images and generates a direct download URL"""
     try:
-        # Get the correct file object
-        file = message.document or message.video or message.audio or (message.photo[-1] if message.photo else None)
+        chat_id = message.chat.id
+        photo = message.photo[-1]  # Get the highest resolution photo
+        file_id = photo.file_id
 
-        if not file:
-            message.reply_text("❌ No valid file found!")
-            return
-
-        file_id = file.file_id
-        print(f"📂 File ID: {file_id}")
-
-        # Fully synchronous get_file()
-        file_info = client.get_file(file_id)  # No 'await' needed
-        print(file_info)
+        # Get file info synchronously
+        file_info = bot.get_file(file_id)
         file_path = file_info.file_path
 
-        # Construct direct download URL
+        # Construct direct file URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
 
-        # Send the file URL
-        message.reply_text(f"📥 **Download Link:**\n{file_url}")
+        # Upload image to ImgBB
+        img_bb_url = f"https://api.imgbb.com/1/upload?key={IMG_BB_API_KEY}&image={file_url}"
+        response = requests.get(img_bb_url).json()
+
+        if "data" in response and "url" in response["data"]:
+            img_url = response["data"]["url"]
+            bot.send_chat_action(chat_id, "upload_photo")
+            bot.send_message(chat_id, f"☑️ Image Uploaded Successfully\n🔗 URL: {img_url}")
+        else:
+            bot.send_message(chat_id, "❌ Upload failed. Please try again.")
 
     except Exception as e:
-        await message.reply_text(f"❌ Error: {e}")
+        bot.send_message(message.chat.id, f"❌ Error: {e}")
         print(f"Error: {e}")
 
 # Run the bot
-if __name__ == "__main__":
-    bot.run()
+bot.polling(none_stop=True)
