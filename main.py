@@ -18,7 +18,7 @@ async def get_cdn_url(client, msg):
 
         try:
             # Fetch file metadata to get access_hash and file_ref
-            file = await client.get_file(document.file_id)
+            file = await client.get_file(document.file_id).__anext__()
 
             # Retrieve the file_ref and access_hash
             file_ref = file.file_ref
@@ -48,7 +48,7 @@ async def get_cdn_url(client, msg):
             await msg.reply(f"Error: {e}")
     else:
         await msg.reply("Please send a document or media file to retrieve the CDN URL.")
-        
+
 
 # Start the bot
 if __name__ == "__main__":
