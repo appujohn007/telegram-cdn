@@ -1,53 +1,41 @@
 from pyrogram import Client, filters
-from pyrogram.raw.functions.upload import GetCdnFile
-from pyrogram.raw.types import InputDocumentFileLocation
 
-# Your API ID and API Hash
-API_ID = "10471716"
-API_HASH = "f8a1b21a13af154596e2ff5bed164860"
-BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"
+# Bot Configuration
+API_ID = 10471716  # Replace with your API ID
+API_HASH = "f8a1b21a13af154596e2ff5bed164860"  # Replace with your API HASH
+BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"  # Replace with your bot token
 
-app = Client("cdn_url_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Initialize Pyrogram Client (Fully Synchronous)
+bot = Client("GetFileURLBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-@app.on_message(filters.media & filters.private)
-async def get_cdn_url(client, msg):
-    if msg.document:
-        try:
-            document = msg.document  # Ensure this is a valid Document object
+@bot.on_message(filters.document | filters.video | filters.audio | filters.photo)
+def get_file_url(client, message):
+    """Handles incoming files and generates a direct download URL"""
+    try:
+        # Get the correct file object
+        file = message.document or message.video or message.audio or (message.photo[-1] if message.photo else None)
 
-            # Fetch file metadata to get access_hash and file_ref
-            file = await client.get_file(document.file_id)
+        if not file:
+            message.reply_text("❌ No valid file found!")
+            return
 
-            # Retrieve the file_ref and access_hash
-            file_ref = file.file_ref
-            access_hash = file.access_hash
-            file_id = file.file_id
-            dc_id = file.dc_id
-            print(f"file details : {file}")
-            
-            # Request CDN file location
-            result = await client.invoke(
-                GetCdnFile(
-                    location=InputDocumentFileLocation(
-                        id=file_id,
-                        access_hash=access_hash,
-                        file_reference=file_ref
-                    ),
-                    offset=0,
-                    limit=1024  # Specify the chunk size (1024 bytes in this case)
-                )
-            )
+        file_id = file.file_id
+        print(f"📂 File ID: {file_id}")
 
-            # Output CDN URL or related information
-            if result:
-                await msg.reply(f"CDN URL retrieved:\n\n{result.url}")
-            else:
-                await msg.reply("Failed to retrieve the CDN URL for this file.")
-        except Exception as e:
-            await msg.reply(f"Error: {e}")
-    else:
-        await msg.reply("Please send a document or media file to retrieve the CDN URL.")
+        # Fully synchronous get_file()
+        file_info = client.get_file(file_id)  # No 'await' needed
+        file_path = file_info.file_path
 
-# Start the bot
+        # Construct direct download URL
+        file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
+
+        # Send the file URL
+        message.reply_text(f"📥 **Download Link:**\n{file_url}")
+
+    except Exception as e:
+        message.reply_text(f"❌ Error: {e}")
+        print(f"Error: {e}")
+
+# Run the bot
 if __name__ == "__main__":
-    app.run()
+    bot.run()
