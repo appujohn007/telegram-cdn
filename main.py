@@ -40,6 +40,7 @@ async def get_cdn_url(client: Client, msg: Message):
         await msg.reply("Please send a document or media file to retrieve the CDN URL.")
 
 
+
 # Start the bot
 if __name__ == "__main__":
     app.run()
