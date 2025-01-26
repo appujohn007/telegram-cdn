@@ -1,47 +1,66 @@
 import telebot
 import requests
+import os
 
 # Bot Configuration
 BOT_TOKEN = "6916875347:AAGo2IamTLCK4fhB5wPzAZFhppJN6GWaFAc"  # Replace with your bot token
-IMG_BB_API_KEY = "your_imgbb_api_key"  # Replace with your ImgBB API Key
 
 # Initialize bot
 bot = telebot.TeleBot(BOT_TOKEN)
 
-@bot.message_handler(content_types=['photo'])
-def get_file_url(message):
-    """Handles incoming images and generates a direct download URL"""
+def download_file(url, file_name):
+    """Download file with progress tracking."""
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    
+    with open(file_name, 'wb') as file:
+        downloaded_size = 0
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                file.write(chunk)
+                downloaded_size += len(chunk)
+                progress = (downloaded_size / total_size) * 100 if total_size else 0
+                print(f"\rDownloading: {progress:.2f}%", end='')
+
+    print("\nDownload Complete:", file_name)
+
+@bot.message_handler(content_types=['photo', 'document', 'video', 'audio'])
+def handle_files(message):
+    """Handles incoming files of any type."""
     try:
         chat_id = message.chat.id
-        
-        # ✅ Fix: If `message.photo` is a list, get the last one; if not, use it directly
-        if isinstance(message.photo, list):
-            file_id = message.photo[-1].file_id  # Get the highest resolution image
-        else:
-            file_id = message.photo.file_id  # Directly access file_id if not a list
+        file_id = None
 
-        # ✅ Get file info synchronously
+        # Determine the file type and extract the file ID
+        if message.photo:
+            file_id = message.photo[-1].file_id  # Highest resolution photo
+        elif message.document:
+            file_id = message.document.file_id
+        elif message.video:
+            file_id = message.video.file_id
+        elif message.audio:
+            file_id = message.audio.file_id
+
+        if not file_id:
+            bot.send_message(chat_id, "Could not retrieve the file.")
+            return
+
+        # Get file information
         file_info = bot.get_file(file_id)
         file_path = file_info.file_path
 
-        print(file_path)
-        # ✅ Construct direct file URL
+        # Construct the direct file URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
-        print(file_url)
-        # ✅ Upload image to ImgBB
-        img_bb_url = f"https://api.imgbb.com/1/upload?key=f753b758a3f6f77a402756162ff48b08&image={file_url}"
-        response = requests.post(img_bb_url).json()
-        print(response)
-        if "data" in response and "url" in response["data"]:
-            img_url = response["data"]["url"]
-            bot.send_chat_action(chat_id, "upload_photo")
-            bot.send_message(chat_id, f"☑️ **Image Uploaded Successfully**\n🔗 **URL:** {img_url}")
-        else:
-            bot.send_message(chat_id, "❌ Upload failed. Please try again.")
+        print("File URL:", file_url)
 
+        # Download the file
+        file_name = os.path.basename(file_path)
+        download_file(file_url, file_name)
+
+        bot.send_message(chat_id, "File downloaded successfully!")
     except Exception as e:
-        bot.send_message(chat_id, f"❌ Error: {e}")
-        print(f"Error: {e}")
+        print("Error:", str(e))
+        bot.send_message(chat_id, "An error occurred while processing the file.")
 
-# ✅ Run the bot
+# Run the bot
 bot.polling(none_stop=True)
