@@ -13,30 +13,34 @@ def get_file_url(message):
     """Handles incoming images and generates a direct download URL"""
     try:
         chat_id = message.chat.id
-        photo = message.photo[-1]  # Get the highest resolution photo
-        file_id = photo.file_id
+        
+        # ✅ Fix: If `message.photo` is a list, get the last one; if not, use it directly
+        if isinstance(message.photo, list):
+            file_id = message.photo[-1].file_id  # Get the highest resolution image
+        else:
+            file_id = message.photo.file_id  # Directly access file_id if not a list
 
-        # Get file info synchronously
+        # ✅ Get file info synchronously
         file_info = bot.get_file(file_id)
         file_path = file_info.file_path
 
-        # Construct direct file URL
+        # ✅ Construct direct file URL
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
 
-        # Upload image to ImgBB
+        # ✅ Upload image to ImgBB
         img_bb_url = f"https://api.imgbb.com/1/upload?key={IMG_BB_API_KEY}&image={file_url}"
-        response = requests.get(img_bb_url).json()
+        response = requests.post(img_bb_url).json()
 
         if "data" in response and "url" in response["data"]:
             img_url = response["data"]["url"]
             bot.send_chat_action(chat_id, "upload_photo")
-            bot.send_message(chat_id, f"☑️ Image Uploaded Successfully\n🔗 URL: {img_url}")
+            bot.send_message(chat_id, f"☑️ **Image Uploaded Successfully**\n🔗 **URL:** {img_url}")
         else:
             bot.send_message(chat_id, "❌ Upload failed. Please try again.")
 
     except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Error: {e}")
+        bot.send_message(chat_id, f"❌ Error: {e}")
         print(f"Error: {e}")
 
-# Run the bot
+# ✅ Run the bot
 bot.polling(none_stop=True)
