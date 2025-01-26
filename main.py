@@ -29,9 +29,9 @@ def get_file_url(message):
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
         print(file_url)
         # ✅ Upload image to ImgBB
-        img_bb_url = f"https://api.imgbb.com/1/upload?key={IMG_BB_API_KEY}&image={file_url}"
+        img_bb_url = f"https://api.imgbb.com/1/upload?key=f753b758a3f6f77a402756162ff48b08&image={file_url}"
         response = requests.post(img_bb_url).json()
-
+        print(response)
         if "data" in response and "url" in response["data"]:
             img_url = response["data"]["url"]
             bot.send_chat_action(chat_id, "upload_photo")
