@@ -24,6 +24,7 @@ def get_file_url(client, message):
 
         # Fully synchronous get_file()
         file_info = client.get_file(file_id)  # No 'await' needed
+        print(file_info)
         file_path = file_info.file_path
 
         # Construct direct download URL
