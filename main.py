@@ -12,7 +12,13 @@ bot = Client("GetFileURLBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TO
 async def get_file_url(client, message):
     """Handles incoming files and generates a direct download URL"""
     try:
-        file = message.document or message.photo or message.video or message.audio
+        # Fetch the correct file object
+        file = message.document or message.video or message.audio or (message.photo[-1] if message.photo else None)
+
+        if not file:
+            await message.reply_text("❌ No valid file found!")
+            return
+
         file_id = file.file_id
 
         # Get file info
@@ -28,6 +34,8 @@ async def get_file_url(client, message):
     except Exception as e:
         await message.reply_text(f"❌ Error: {e}")
         print(f"Error: {e}")
+
+
 
 # Run the bot
 if __name__ == "__main__":
