@@ -20,7 +20,7 @@ async def get_file_url(client, message):
             return
 
         file_id = file.file_id
-
+        print(f"file Id: {file_id}")
         # ✅ FIXED: get_file() is NOT an async function, so remove 'await'
         file_info = client.get_file(file_id)  # <-- No 'await' here
         file_path = file_info.file_path
